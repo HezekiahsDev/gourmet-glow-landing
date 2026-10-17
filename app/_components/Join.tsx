@@ -16,6 +16,7 @@ type Status = 'idle' | 'sending' | 'done' | 'error';
 
 export default function Join() {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [interest, setInterest] = useState<Interest>('everything');
   const [pickedFor, setPickedFor] = useState<string | undefined>();
@@ -49,7 +50,7 @@ export default function Join() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim(), interest, product: pickedFor }),
+        body: JSON.stringify({ email: email.trim(), name: name.trim(), phone: phone.trim(), interest, product: pickedFor }),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || 'Something went wrong.');
       writeStore(JOINED_KEY, '1');
@@ -127,6 +128,19 @@ export default function Join() {
                   placeholder="you@example.com"
                   aria-invalid={Boolean(error)}
                   aria-describedby={error ? 'join-error' : 'join-note'}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="join-phone">Phone number <span>(optional)</span></label>
+                <input
+                  id="join-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  maxLength={24}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+234 801 234 5678"
                 />
               </div>
 

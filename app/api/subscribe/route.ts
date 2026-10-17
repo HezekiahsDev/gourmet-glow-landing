@@ -16,6 +16,7 @@ export async function POST(request: Request) {
   const signup = {
     email,
     name: typeof body?.name === 'string' ? body.name.trim().slice(0, 80) : '',
+    phone: typeof body?.phone === 'string' ? body.phone.trim().slice(0, 24) : '',
     interest: INTERESTS.has(body?.interest) ? body.interest : 'everything',
     product: typeof body?.product === 'string' ? body.product.slice(0, 80) : '',
     source: 'landing-page',
