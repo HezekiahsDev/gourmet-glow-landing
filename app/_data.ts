@@ -156,4 +156,33 @@ export const navLinks = [
   { href: '#ingredients', label: 'Ingredients' },
   { href: '#finder', label: 'Glow Finder' },
   { href: '#faq', label: 'FAQ' },
+  { href: '#join', label: 'Join Community' },
 ];
+
+export const socialLinks = [
+  {
+    name: 'Instagram',
+    href: 'https://instagram.com/gourmetglow',
+    icon: 'instagram',
+  },
+  {
+    name: 'TikTok',
+    href: 'https://tiktok.com/@gourmetglow',
+    icon: 'tiktok',
+  },
+  {
+    name: 'X (Twitter)',
+    href: 'https://x.com/gourmetglow',
+    icon: 'x',
+  },
+  {
+    name: 'Facebook',
+    href: 'https://facebook.com/gourmetglow',
+    icon: 'facebook',
+  },
+];
+
+export const communityLinks = {
+  joinCommunity: 'https://chat.whatsapp.com/REPLACE_WITH_WHATSAPP_GROUP_INVITE',
+  messageUs: 'https://wa.me/2340000000000?text=Hi%20Gourmet%20Glow%2C%20I%20have%20a%20question%20about%20your%20products',
+};

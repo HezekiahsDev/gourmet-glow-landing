@@ -72,7 +72,21 @@ export default function Header() {
             </a>
           ))}
         </nav>
-        <a className="btn btn-clay btn-block" href="#join" onClick={close}>Get early access <span aria-hidden="true">→</span></a>
+        <div className="mobile-menu-actions">
+          <a className="btn btn-clay btn-block" href="#join" onClick={close}>Get early access <span aria-hidden="true">→</span></a>
+          <a className="btn btn-ghost-light btn-block" href="https://chat.whatsapp.com/REPLACE_WITH_WHATSAPP_GROUP_INVITE" target="_blank" rel="noopener noreferrer" onClick={close}>
+            Join community
+          </a>
+          <a className="btn btn-ghost-light btn-block" href="https://wa.me/2340000000000?text=Hi%20Gourmet%20Glow%2C%20I%20have%20a%20question%20about%20your%20products" target="_blank" rel="noopener noreferrer" onClick={close}>
+            Message us
+          </a>
+        </div>
+        <div className="mobile-socials">
+          <a href="https://instagram.com/gourmetglow" target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
+          <a href="https://tiktok.com/@gourmetglow" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TT</a>
+          <a href="https://x.com/gourmetglow" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">X</a>
+          <a href="https://facebook.com/gourmetglow" target="_blank" rel="noopener noreferrer" aria-label="Facebook">FB</a>
+        </div>
         <p className="mobile-menu-note">Founding list open. Free to join, first to shop.</p>
       </div>
     </header>

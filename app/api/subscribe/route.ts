@@ -35,7 +35,12 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(signup),
     });
-    if (!res.ok) throw new Error(`Webhook responded ${res.status}`);
+    // Apps Script web apps always answer HTTP 200, so the real outcome
+    // lives in the body's "ok" field rather than the status code.
+    const result = await res.json().catch(() => null);
+    if (!res.ok || result?.ok !== true) {
+      throw new Error(result?.error || `Webhook responded ${res.status}`);
+    }
     return NextResponse.json({ ok: true, stored: true });
   } catch (err) {
     console.error('[subscribe] webhook failed', err);

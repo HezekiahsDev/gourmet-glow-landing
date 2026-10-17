@@ -24,7 +24,9 @@ function doPost(e) {
   try {
     const payload = parseBody_(e);
     if (!payload || !payload.email) {
-      return json_({ ok: false, error: 'Missing email' }, 400);
+      // Apps Script web apps always return HTTP 200 and cannot set the
+      // status code, so success/failure travels in the JSON body instead.
+      return json_({ ok: false, error: 'Missing email' });
     }
 
     const sheet = getSheet_();
@@ -33,10 +35,10 @@ function doPost(e) {
 
     return json_({ ok: true });
   } catch (err) {
-    // Surface the error so the landing page shows its failure message
-    // instead of silently losing the signup.
+    // Surface the error in the response body so the site can show its
+    // retry message instead of silently losing the signup.
     console.error(err);
-    return json_({ ok: false, error: String(err) }, 500);
+    return json_({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
   }
@@ -85,8 +87,10 @@ function ensureHeader_(sheet) {
   }
 }
 
-function json_(obj, status) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setResponseCode(status || 200);
+function json_(obj) {
+  // TextOutput has no setResponseCode — Apps Script web apps always answer
+  // HTTP 200 — so callers must inspect the "ok" field in the body.
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
+    ContentService.MimeType.JSON
+  );
 }
