@@ -2,6 +2,9 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { PhoneInput } from 'react-international-phone';
+import { isValidPhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js';
+import 'react-international-phone/style.css';
 import { perks, type Interest } from '../_data';
 import { INTEREST_EVENT, JOINED_KEY, readStore, writeStore, type InterestDetail } from './interest';
 
@@ -22,6 +25,7 @@ export default function Join() {
   const [pickedFor, setPickedFor] = useState<string | undefined>();
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState(false);
   const [copied, setCopied] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
@@ -44,13 +48,31 @@ export default function Join() {
       emailRef.current?.focus();
       return;
     }
+    // Phone is optional, but if the user typed anything it must be a real
+    // number for the country they picked — checked here before any network
+    // call, and re-checked server-side.
+    const digits = phone.replace(/\D/g, '');
+    if (digits && !isValidPhoneNumber(phone)) {
+      setPhoneError(true);
+      document.getElementById('join-phone')?.focus();
+      return;
+    }
+    setPhoneError(false);
     setStatus('sending');
     setError('');
     try {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim(), phone: phone.trim(), interest, product: pickedFor }),
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim(),
+          // Store the canonical E.164 form (+2348012345678) so the sheet
+          // gets one consistent format regardless of how it was typed.
+          phone: digits ? (parsePhoneNumberFromString(phone)?.number ?? '') : '',
+          interest,
+          product: pickedFor,
+        }),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || 'Something went wrong.');
       writeStore(JOINED_KEY, '1');
@@ -132,16 +154,25 @@ export default function Join() {
               </div>
               <div className="field">
                 <label htmlFor="join-phone">Phone number <span>(optional)</span></label>
-                <input
-                  id="join-phone"
-                  type="tel"
-                  autoComplete="tel"
-                  inputMode="tel"
-                  maxLength={24}
+                <PhoneInput
+                  defaultCountry="ng"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+234 801 234 5678"
+                  onChange={(v) => { setPhone(v); if (phoneError) setPhoneError(false); }}
+                  forceDialCode
+                  disableDialCodePrefill={false}
+                  placeholder="801 234 5678"
+                  inputProps={{
+                    id: 'join-phone',
+                    autoComplete: 'tel',
+                    'aria-invalid': phoneError || undefined,
+                    'aria-describedby': phoneError ? 'join-phone-error' : undefined,
+                  }}
                 />
+                {phoneError && (
+                  <p className="form-error" id="join-phone-error" role="alert">
+                    That phone number doesn’t look right for the country selected. Please check it.
+                  </p>
+                )}
               </div>
 
               <fieldset className="field">

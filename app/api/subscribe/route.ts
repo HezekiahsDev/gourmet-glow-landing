@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isValidPhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const INTERESTS = new Set(['skin', 'hair', 'body', 'everything']);
@@ -13,10 +14,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
   }
 
+  const rawPhone = typeof body?.phone === 'string' ? body.phone.trim() : '';
+  if (rawPhone.length > 32) {
+    return NextResponse.json({ error: 'Please enter a valid phone number.' }, { status: 400 });
+  }
+
+  // Phone is optional, but anything provided must be a real number. The
+  // client already checked this; re-validating here means a hand-rolled
+  // request can't push junk into the sheet. Normalize to E.164 so the
+  // sheet always holds one canonical format.
+  let phone = '';
+  if (rawPhone) {
+    const parsed = parsePhoneNumberFromString(rawPhone);
+    if (!parsed || !parsed.isValid() || !isValidPhoneNumber(rawPhone)) {
+      return NextResponse.json({ error: 'Please enter a valid phone number.' }, { status: 400 });
+    }
+    phone = parsed.number; // canonical E.164, e.g. +2348012345678
+  }
+
+  const name = typeof body?.name === 'string' ? body.name.trim() : '';
+  if (name.length > 80) {
+    return NextResponse.json({ error: 'Please enter a valid name.' }, { status: 400 });
+  }
+
   const signup = {
     email,
-    name: typeof body?.name === 'string' ? body.name.trim().slice(0, 80) : '',
-    phone: typeof body?.phone === 'string' ? body.phone.trim().slice(0, 24) : '',
+    name,
+    phone,
     interest: INTERESTS.has(body?.interest) ? body.interest : 'everything',
     product: typeof body?.product === 'string' ? body.product.slice(0, 80) : '',
     source: 'landing-page',
