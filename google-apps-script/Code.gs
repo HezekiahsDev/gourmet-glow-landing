@@ -24,7 +24,7 @@ function doPost(e) {
   try {
     const payload = parseBody_(e);
     if (!payload || !payload.email) {
-      // Apps Script web apps always return HTTP 200 and cannot set the
+      // Apps Script web apps always answer HTTP 200 and cannot set the
       // status code, so success/failure travels in the JSON body instead.
       return json_({ ok: false, error: 'Missing email' });
     }
@@ -42,6 +42,17 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// TextOutput has no setResponseCode (a plain Object) and its content type
+// only reliably takes effect when read back via getContent(). Apps Script
+// also answers with a 302 redirect, so callers must read the JSON body —
+// the body is the only channel that carries the real outcome.
+function json_(obj) {
+  const json = JSON.stringify(obj);
+  const out = ContentService.createTextOutput(json);
+  out.setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(out.getContent());
 }
 
 // Vercel sends application/json; some webhook tools send form-encoded.

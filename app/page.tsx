@@ -1,5 +1,6 @@
 import Collection from './_components/Collection';
 import Effects from './_components/Effects';
+import FabChat from './_components/FabChat';
 import GlowFinder from './_components/GlowFinder';
 import Header from './_components/Header';
 import Hero from './_components/Hero';
@@ -30,6 +31,7 @@ export default function Home() {
       </main>
       <Footer />
       <StickyCta />
+      <FabChat />
     </>
   );
 }
