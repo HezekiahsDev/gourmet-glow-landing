@@ -67,6 +67,12 @@ const systemFor = (entry: ChatModel) => (entry.tools ? SYSTEM_WITH_ACTIONS : SYS
 // leaving room to research a product and then write the reply.
 const MAX_STEPS = 3;
 
+// The free NIM endpoint drops requests in short bursts. A single extra pass over
+// the chain only costs time on days when the first pass found everything down,
+// and it turns most blips into a reply instead of an apology.
+const CHAIN_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 400;
+
 export async function POST(req: Request) {
   if (!process.env.NVIDIA_API_KEY) {
     console.error('[chat] NVIDIA_API_KEY is not set');
@@ -84,7 +90,10 @@ export async function POST(req: Request) {
     execute: async ({ writer }) => {
       let lastError: unknown;
 
-      for (const entry of chatModels) {
+      // One model's turn. Returns true once a reply has been written; false
+      // means the model failed before saying anything, so the next one gets a
+      // shot at it.
+      const runModel = async (entry: ChatModel) => {
         const result = streamText({
           model: entry.model,
           messages: modelMessages,
@@ -124,7 +133,6 @@ export async function POST(req: Request) {
 
         const chunks: UIMessageChunk[] = [];
         let committed = false;
-        let failed = false;
 
         try {
           for (;;) {
@@ -137,28 +145,35 @@ export async function POST(req: Request) {
             }
             // Nothing has been sent yet, so this attempt is still free to abandon.
             if (chunk.type === 'error') {
-              failed = true;
               lastError = chunk.errorText;
               await reader.cancel();
-              break;
+              return false;
             }
             chunks.push(chunk);
             if (!CONTROL_CHUNKS.has(chunk.type)) committed = true;
           }
         } catch (error) {
+          // Once words are on screen the reply can no longer be swapped for
+          // another model without the visitor watching it change its mind.
           if (committed) throw error;
-          failed = true;
           lastError = error;
+          return false;
         }
 
-        if (!failed) {
-          // Either the reply streamed as it arrived, or it was empty and is
-          // only now being flushed.
-          for (const chunk of chunks) writer.write(chunk);
-          return;
-        }
+        // Either the reply streamed as it arrived, or it was empty and is only
+        // now being flushed.
+        for (const chunk of chunks) writer.write(chunk);
+        return true;
+      };
 
-        console.warn(`[chat] ${entry.id} unavailable, trying the next model`);
+      for (let attempt = 0; attempt < CHAIN_ATTEMPTS; attempt++) {
+        for (const entry of chatModels) {
+          if (await runModel(entry)) return;
+          console.warn(`[chat] ${entry.id} unavailable, trying the next model`);
+        }
+        if (attempt < CHAIN_ATTEMPTS - 1) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        }
       }
 
       throw lastError ?? new Error('No chat model is currently available');

@@ -94,7 +94,7 @@ export default function FabChat() {
     []
   );
 
-  const { messages, sendMessage, status, stop, error, setMessages } = useChat({
+  const { messages, sendMessage, status, stop, error, setMessages, regenerate, clearError } = useChat({
     transport,
     onError: () => {
       // A failed turn shouldn't leave a retry storm queued up behind it.
@@ -109,7 +109,7 @@ export default function FabChat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, error, queued]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -173,7 +173,16 @@ export default function FabChat() {
 
   const clearChat = () => {
     dropQueue();
+    clearError();
     setMessages([]);
+  };
+
+  // A dropped turn (usually the chat service catching its breath) shouldn't force
+  // anyone to retype. regenerate() re-runs the last turn in place.
+  const retryLast = () => {
+    clearError();
+    // onError re-surfaces any failure; this catch just keeps the promise quiet.
+    void regenerate().catch(() => {});
   };
 
   const busy = status === 'streaming' || status === 'submitted';
@@ -303,7 +312,10 @@ export default function FabChat() {
           ))}
           {error && (
             <div className="chat-error">
-              <p>Sorry, we couldn’t reach the team just now. Please try again in a moment.</p>
+              <p>Sorry, we couldn’t reach the team just now.</p>
+              <button type="button" className="chat-error-retry" onClick={retryLast}>
+                Try again
+              </button>
             </div>
           )}
           <div ref={messagesEndRef} />
