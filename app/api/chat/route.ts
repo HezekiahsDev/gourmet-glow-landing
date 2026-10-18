@@ -15,10 +15,10 @@ import { chatTools } from './tools';
 // Room for a retry plus one fallback model on a congested day.
 export const maxDuration = 60;
 
-// Chunks that carry no model output. Anything else means the reply has begun
-// and can no longer be swapped for another model without the visitor seeing a
-// half-written answer jump.
-const CONTROL_CHUNKS = new Set(['start', 'start-step', 'finish-step', 'finish', 'message-metadata']);
+// Keep the response buffered until actual assistant text starts. Tool events
+// are not visible as a reply, so a model can still be replaced if it fails
+// after making a tool call but before writing an answer.
+const OUTPUT_CHUNKS = new Set(['text-start', 'text-delta']);
 
 const SYSTEM = `You're on the Gourmet Glow team, helping people who are curious about us.
 Gourmet Glow is a Nigerian skincare and haircare brand.
@@ -175,7 +175,13 @@ export async function POST(req: Request) {
             }
             // Nothing has been sent yet, so this attempt is still free to abandon.
             chunks.push(chunk);
-            if (!CONTROL_CHUNKS.has(chunk.type)) committed = true;
+            if (OUTPUT_CHUNKS.has(chunk.type)) {
+              committed = true;
+              // The UI message stream requires its start event before any tool
+              // or text event. Flush the preamble before streaming the reply.
+              for (const bufferedChunk of chunks) writer.write(bufferedChunk);
+              chunks.length = 0;
+            }
           }
         } catch (error) {
           if (committed) throw error;
