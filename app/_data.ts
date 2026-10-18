@@ -79,6 +79,8 @@ export const ingredients = [
     feel: 'Rich and cushioning',
     note: 'A West African staple for softening and comforting dry skin, passed down through generations.',
     foundIn: ['Body Butter', 'Cleansing Bar'],
+    image: '/images/ingredients.jpg',
+    imageAlt: 'Shea butter, nuts and golden botanical oil',
   },
   {
     id: 'cocoa',
@@ -87,6 +89,8 @@ export const ingredients = [
     feel: 'Velvety and warm',
     note: 'A naturally firm butter that melts on contact with skin, with a soft chocolate scent.',
     foundIn: ['Body Butter', 'Cleansing Bar'],
+    image: '/images/ingredients/cocoa.jpg',
+    imageAlt: 'Cocoa pod on a tree',
   },
   {
     id: 'baobab',
@@ -95,6 +99,58 @@ export const ingredients = [
     feel: 'Light and silky',
     note: 'A lightweight oil that absorbs easily, so skin and hair feel nourished, not greasy.',
     foundIn: ['Body Butter', 'Hair Oil'],
+    image: '/images/ingredients/baobab.jpg',
+    imageAlt: 'Baobab tree and fruit',
+  },
+  {
+    id: 'jojoba',
+    name: 'Jojoba oil',
+    origin: 'Pressed from the seeds of the jojoba shrub, a desert plant prized for its resilient oil.',
+    feel: 'Light and balancing',
+    note: 'A silky botanical oil that feels close to the skin’s natural oils and leaves a soft, comfortable finish.',
+    foundIn: ['Hair Oil'],
+    image: '/images/ingredients/jojoba.jpg',
+    imageAlt: 'Jojoba plants growing in a plantation',
+  },
+  {
+    id: 'coconut',
+    name: 'Coconut oil',
+    origin: 'Made from the flesh of coconuts, a familiar tropical staple rich in nourishing oils.',
+    feel: 'Smooth and nourishing',
+    note: 'A comforting plant oil that helps give formulas their glide while leaving skin feeling supple.',
+    foundIn: ['Body Butter', 'Cleansing Bar'],
+    image: '/images/ingredients/coconut.jpg',
+    imageAlt: 'Coconut oil',
+  },
+  {
+    id: 'honey',
+    name: 'Honey',
+    origin: 'Collected by bees from flowering plants and treasured across African beauty rituals.',
+    feel: 'Soft and comforting',
+    note: 'A naturally humectant ingredient that helps skin hold on to moisture for a fresh, cared-for feel.',
+    foundIn: ['Cleansing Bar'],
+    image: '/images/ingredients/honey.jpg',
+    imageAlt: 'Honey in a jar with a honey dipper',
+  },
+  {
+    id: 'papaya',
+    name: 'Papaya',
+    origin: 'Grown in warm tropical climates, where its bright fruit has long been part of everyday care.',
+    feel: 'Fresh and renewing',
+    note: 'A fruit botanical selected for a gentle, bright-feeling addition to a considered cleansing ritual.',
+    foundIn: ['Cleansing Bar'],
+    image: '/images/ingredients/papaya.jpg',
+    imageAlt: 'Fresh papaya cut open to show its seeds',
+  },
+  {
+    id: 'moringa',
+    name: 'Moringa oil',
+    origin: 'Pressed from the seeds of the moringa tree, a hardy and nourishing tree native to South Asia and now grown widely in Africa.',
+    feel: 'Nourishing and weightless',
+    note: 'A nutrient-rich botanical oil that helps skin and hair feel soft, smooth and cared for.',
+    foundIn: ['Hair Oil', 'Body Butter'],
+    image: '/images/ingredients/moringa.jpg',
+    imageAlt: 'Moringa seeds',
   },
 ];
 
@@ -107,7 +163,7 @@ export const promises = [
 
 export const perks = [
   { title: 'First access', body: 'Shop the first batch before it opens to everyone.' },
-  { title: 'Ingredient stories', body: 'Where our shea, cocoa and baobab come from, and why.' },
+  { title: 'Ingredient stories', body: 'Where our botanicals come from, and why they belong in each formula.' },
   { title: 'A say in what’s next', body: 'Vote on scents, sizes and the next product we make.' },
 ];
 

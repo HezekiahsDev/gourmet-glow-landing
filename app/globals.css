@@ -363,7 +363,7 @@ p { margin: 0; }
 .ingredients-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 7vw, 110px); align-items: center; }
 .ingredients-visual { position: relative; aspect-ratio: 1; width: 100%; max-width: 560px; justify-self: center; }
 .ingredients-frame { position: absolute; inset: 9%; border-radius: 50%; overflow: hidden; border: 10px solid rgba(255, 252, 246, .7); box-shadow: 0 40px 90px -40px rgba(74, 48, 39, .6); }
-.ingredients-frame img { object-fit: cover; }
+.ingredients-frame img { object-fit: cover; animation: ingredientImageIn .7s var(--ease); }
 .ring { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(167, 101, 69, .45); animation: spin 60s linear infinite; }
 .ring-1 { inset: 2%; }
 .ring-2 { inset: -4%; border-style: solid; border-color: rgba(119, 119, 90, .25); animation-direction: reverse; animation-duration: 90s; }
@@ -372,6 +372,11 @@ p { margin: 0; }
 .ing-tag-1 { top: 6%; left: -2%; }
 .ing-tag-2 { top: 44%; right: -6%; animation-delay: -2s; }
 .ing-tag-3 { bottom: 4%; left: 10%; animation-delay: -4s; }
+.ing-tag-4 { top: 20%; right: -12%; animation-delay: -1s; }
+.ing-tag-5 { bottom: 20%; right: -10%; animation-delay: -3s; }
+.ing-tag-6 { bottom: -3%; right: 30%; animation-delay: -5s; }
+.ing-tag-7 { top: -3%; left: 30%; animation-delay: -6s; }
+.ing-tag-8 { top: 68%; left: -10%; animation-delay: -7s; }
 
 .ing-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 18px; }
 .ing-tabs button { display: inline-flex; align-items: center; gap: 10px; padding: 11px 20px; border-radius: 999px; border: 1px solid rgba(74, 48, 39, .2); background: rgba(255, 252, 246, .5); font-weight: 600; font-size: 15px; color: var(--cocoa); transition: background .3s, color .3s, border-color .3s; }
@@ -534,6 +539,7 @@ p { margin: 0; }
 @keyframes rise { to { transform: translateY(0); } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ingredientImageIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: scale(1); } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 @keyframes slideIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 @keyframes popIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }

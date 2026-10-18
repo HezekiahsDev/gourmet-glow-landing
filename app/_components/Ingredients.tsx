@@ -1,13 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ingredients } from '../_data';
 
 export default function Ingredients() {
   const [active, setActive] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const item = ingredients[active];
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const timer = window.setInterval(() => {
+      setActive((current) => (current + 1) % ingredients.length);
+    }, 6500);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   const onKey = (e: React.KeyboardEvent) => {
     const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
@@ -24,7 +34,7 @@ export default function Ingredients() {
       <div className="container ingredients-grid">
         <div className="ingredients-visual" data-reveal>
           <div className="ingredients-frame">
-            <Image src="/images/ingredients.jpg" alt="Raw shea butter, cocoa pods and golden oil" fill sizes="(max-width: 900px) 92vw, 46vw" />
+            <Image key={item.id} src={item.image} alt={item.imageAlt} fill sizes="(max-width: 900px) 92vw, 46vw" />
           </div>
           <span className="ring ring-1" aria-hidden="true" />
           <span className="ring ring-2" aria-hidden="true" />
@@ -46,7 +56,7 @@ export default function Ingredients() {
           <header className="section-head" data-reveal>
             <p className="eyebrow">Ingredients with a story</p>
             <h2 id="ingredients-title">A little closer <em>to nature.</em></h2>
-            <p className="section-sub">Three West African treasures sit at the heart of everything we make. Tap one to learn where it comes from.</p>
+            <p className="section-sub">Eight thoughtful botanicals sit at the heart of our collection. Tap one to learn where it comes from, or let the stories rotate.</p>
           </header>
 
           <div className="ing-tabs" role="tablist" aria-label="Signature ingredients" onKeyDown={onKey} data-reveal>
@@ -67,7 +77,7 @@ export default function Ingredients() {
             ))}
           </div>
 
-          <div className="glass glass-light ing-panel" id="ing-panel" role="tabpanel" aria-labelledby={`tab-${item.id}`} data-glow key={item.id}>
+          <div className="glass glass-light ing-panel" id="ing-panel" role="tabpanel" aria-labelledby={`tab-${item.id}`} aria-live="polite" data-glow key={item.id}>
             <p className="ing-origin">{item.origin}</p>
             <p className="ing-note">{item.note}</p>
             <dl className="ing-facts">

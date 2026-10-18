@@ -67,9 +67,18 @@ const systemFor = (entry: ChatModel) => (entry.tools ? SYSTEM_WITH_ACTIONS : SYS
 // leaving room to research a product and then write the reply.
 const MAX_STEPS = 3;
 
-// The free NIM endpoint drops requests in short bursts. A single extra pass over
-// the chain only costs time on days when the first pass found everything down,
-// and it turns most blips into a reply instead of an apology.
+// The free NIM endpoint drops requests in short bursts, so one extra pass over
+// the chain is worth having — but every call has to be bounded. Vercel kills the
+// function at maxDuration, and because a streamed response has already sent its
+// 200 by then, the visitor would see the reply simply stop rather than our own
+// message. Staying comfortably inside that limit means a slow provider becomes a
+// friendly apology instead of a dead stream.
+const RESPONSE_BUDGET_MS = 38_000;
+const ATTEMPT_TIMEOUT_MS = 16_000;
+// A stream that goes quiet this long is not going to finish.
+const CHUNK_STALL_MS = 10_000;
+// Not worth starting a model with less runway than this; it would only be cut off.
+const MIN_ATTEMPT_MS = 6_000;
 const CHAIN_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 400;
 
@@ -93,7 +102,7 @@ export async function POST(req: Request) {
       // One model's turn. Returns true once a reply has been written; false
       // means the model failed before saying anything, so the next one gets a
       // shot at it.
-      const runModel = async (entry: ChatModel) => {
+      const runModel = async (entry: ChatModel, budgetMs: number) => {
         const result = streamText({
           model: entry.model,
           messages: modelMessages,
@@ -101,6 +110,10 @@ export async function POST(req: Request) {
           // Let the model call a tool and then keep writing a reply in the same turn.
           tools: entry.tools ? chatTools : undefined,
           stopWhen: stepCountIs(MAX_STEPS),
+          // Bounds the whole attempt — the model call, its retries and any tool
+          // work — so one congested model cannot hold the request open until the
+          // platform cuts it off.
+          timeout: { totalMs: budgetMs, chunkMs: CHUNK_STALL_MS },
           prepareStep: ({ stepNumber }) => {
             // The fallback model is never given tools, so it is never asked
             // for buttons.
@@ -118,10 +131,12 @@ export async function POST(req: Request) {
           // options instead of calling suggestActions. A low temperature keeps
           // it on the rails: buttons, not bullet points.
           temperature: 0.3,
-          // The public NIM endpoint answers 503 when a model is congested; that
-          // is retryable, but only briefly — we would rather move to the next
-          // model than make the visitor wait through a long retry ladder.
-          maxRetries: 2,
+          // The free NIM endpoint answers 503 when a model is congested, which
+          // is retryable — but the SDK's own backoff is long enough to consume
+          // a whole attempt without ever reaching the fallback. Failing fast and
+          // moving down the chain (each pass bounded by the attempt timeout) is
+          // both quicker and more predictable for the visitor.
+          maxRetries: 0,
           onError: ({ error }) => console.error(`[chat] ${entry.id} stream error:`, error),
         });
 
@@ -139,22 +154,30 @@ export async function POST(req: Request) {
             const { done, value: chunk } = await reader.read();
             if (done) break;
 
+            // A timeout or provider failure reaches us as an abort, and a
+            // rejected call as an error. Either one ends this attempt: letting
+            // the abort through would look like a clean finish and the visitor
+            // would be left with an empty bubble instead of the fallback reply.
+            if (chunk.type === 'error' || chunk.type === 'abort') {
+              const reason = chunk.type === 'error' ? chunk.errorText : chunk.reason;
+              // Once words are on screen the reply can no longer be swapped for
+              // another model without the visitor watching it change its mind,
+              // so the failure has to surface instead.
+              if (committed) throw new Error(String(reason));
+              lastError = reason;
+              await reader.cancel();
+              return false;
+            }
+
             if (committed) {
               writer.write(chunk);
               continue;
             }
             // Nothing has been sent yet, so this attempt is still free to abandon.
-            if (chunk.type === 'error') {
-              lastError = chunk.errorText;
-              await reader.cancel();
-              return false;
-            }
             chunks.push(chunk);
             if (!CONTROL_CHUNKS.has(chunk.type)) committed = true;
           }
         } catch (error) {
-          // Once words are on screen the reply can no longer be swapped for
-          // another model without the visitor watching it change its mind.
           if (committed) throw error;
           lastError = error;
           return false;
@@ -166,17 +189,28 @@ export async function POST(req: Request) {
         return true;
       };
 
-      for (let attempt = 0; attempt < CHAIN_ATTEMPTS; attempt++) {
+      // Every attempt draws from one shared wall-clock budget, so the response
+      // always resolves before the platform's function limit.
+      const deadline = Date.now() + RESPONSE_BUDGET_MS;
+
+      attempt: for (let pass = 0; pass < CHAIN_ATTEMPTS; pass++) {
         for (const entry of chatModels) {
-          if (await runModel(entry)) return;
+          const budget = Math.min(ATTEMPT_TIMEOUT_MS, deadline - Date.now());
+          if (budget < MIN_ATTEMPT_MS) {
+            console.warn('[chat] out of runway before any model answered');
+            break attempt;
+          }
+          if (await runModel(entry, budget)) return;
           console.warn(`[chat] ${entry.id} unavailable, trying the next model`);
         }
-        if (attempt < CHAIN_ATTEMPTS - 1) {
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+
+        if (pass < CHAIN_ATTEMPTS - 1) {
+          const wait = deadline - Date.now() - MIN_ATTEMPT_MS;
+          if (wait > 0) await new Promise((resolve) => setTimeout(resolve, Math.min(RETRY_DELAY_MS, wait)));
         }
       }
 
-      throw lastError ?? new Error('No chat model is currently available');
+      throw lastError ?? new Error('No chat model answered within the time allowed');
     },
   });
 
