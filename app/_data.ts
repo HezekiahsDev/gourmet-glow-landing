@@ -79,8 +79,8 @@ export const ingredients = [
     feel: 'Rich and cushioning',
     note: 'A West African staple for softening and comforting dry skin, passed down through generations.',
     foundIn: ['Body Butter', 'Cleansing Bar'],
-    image: '/images/ingredients.jpg',
-    imageAlt: 'Shea butter, nuts and golden botanical oil',
+    image: '/images/ingredients/shea-butter.jpg',
+    imageAlt: 'Shea butter and shea nuts on a wooden plate',
   },
   {
     id: 'cocoa',
@@ -109,8 +109,8 @@ export const ingredients = [
     feel: 'Light and balancing',
     note: 'A silky botanical oil that feels close to the skin’s natural oils and leaves a soft, comfortable finish.',
     foundIn: ['Hair Oil'],
-    image: '/images/ingredients/jojoba.jpg',
-    imageAlt: 'Jojoba plants growing in a plantation',
+    image: '/images/ingredients/jojoba.webp',
+    imageAlt: 'Jojoba oil, fruit and seeds',
   },
   {
     id: 'coconut',
@@ -139,7 +139,7 @@ export const ingredients = [
     feel: 'Fresh and renewing',
     note: 'A fruit botanical selected for a gentle, bright-feeling addition to a considered cleansing ritual.',
     foundIn: ['Cleansing Bar'],
-    image: '/images/ingredients/papaya.jpg',
+    image: '/images/ingredients/papaya.webp',
     imageAlt: 'Fresh papaya cut open to show its seeds',
   },
   {
@@ -149,8 +149,18 @@ export const ingredients = [
     feel: 'Nourishing and weightless',
     note: 'A nutrient-rich botanical oil that helps skin and hair feel soft, smooth and cared for.',
     foundIn: ['Hair Oil', 'Body Butter'],
-    image: '/images/ingredients/moringa.jpg',
-    imageAlt: 'Moringa seeds',
+    image: '/images/ingredients/moringa.webp',
+    imageAlt: 'Moringa oil and seeds',
+  },
+  {
+    id: 'carrot',
+    name: 'Carrot',
+    origin: 'A bright root vegetable cultivated around the world and valued in everyday botanical care.',
+    feel: 'Bright and revitalising',
+    note: 'A fresh botanical associated with a healthy-looking glow and a well-nourished feel.',
+    foundIn: ['Cleansing Bar'],
+    image: '/images/ingredients/carrot.webp',
+    imageAlt: 'Carrot oil with a fresh carrot and carrot seeds',
   },
 ];
 

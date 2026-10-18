@@ -56,7 +56,7 @@ export default function Ingredients() {
           <header className="section-head" data-reveal>
             <p className="eyebrow">Ingredients with a story</p>
             <h2 id="ingredients-title">A little closer <em>to nature.</em></h2>
-            <p className="section-sub">Eight thoughtful botanicals sit at the heart of our collection. Tap one to learn where it comes from, or let the stories rotate.</p>
+            <p className="section-sub">Nine thoughtful botanicals sit at the heart of our collection. Tap one to learn where it comes from, or let the stories rotate.</p>
           </header>
 
           <div className="ing-tabs" role="tablist" aria-label="Signature ingredients" onKeyDown={onKey} data-reveal>
