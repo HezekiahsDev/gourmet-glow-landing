@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.71",
     "@ai-sdk/react": "^4.0.147",
     "ai": "^7.0.143",
     "libphonenumber-js": "^1.13.15",
